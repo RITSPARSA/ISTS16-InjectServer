@@ -37,7 +37,8 @@ class Inject(object):
     def islate(self):
         """Check whether this inject can still be submitted
         """
-        #TODO
+        if float(self.number) > 2:
+            return False
         return True
     
     def get(self):
@@ -64,17 +65,25 @@ class Injects(object):
     def __init__(self, directory):
         """Loads all the injects from a given path
         """
+        def append_slash(dirname):
+            if dirname[-1] != "/":
+                dirname+="/"
+            return dirname
+        
         self.injects = {}
+        inject_files = []
         for (path, dirs, files) in walk(directory):
-            for f in files:
-                try:
-                    inj = Inject(path+f) # Try to create an inject number
-                    self.injects[inj.number] = inj # Add to the injects
-                except ValueError:
-                    Logger.warn("Cannot load inject {}. Skipping."\
-                        .format(f.strip()))
+            inject_files += [ append_slash(path)+f for f in files ]
+
+        for f in inject_files:
+            try:
+                inj = Inject(f) # Try to create an inject number
+                self.injects[inj.number] = inj # Add to the injects
+            except ValueError:
+                Logger.warn("Cannot load inject {}. Skipping."\
+                    .format(f.strip()))
         Logger.update("Loaded {} injects from \"{}\"".format(
-                        len(self.injects), directory))
+                    len(self.injects), directory))
     
     def __str__(self):
         loaded = [ str(i) for i in self.injects.values()]
@@ -135,3 +144,7 @@ class Injects(object):
         """
         key = sorted(self.injects.keys())
         return self.injects[key[0]]
+
+    def isinject(self, name):
+        return str(name) in self.injects.keys()
+        

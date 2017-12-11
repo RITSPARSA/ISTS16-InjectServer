@@ -22,26 +22,29 @@ class Handler(object):
         template = None # the template to render during the return
         data = {} # All the data that goes into a jinja template
         data["inject_subject"] = subject
+        data["sender"] = sender
+        # See if the inject is a valid format
         try:
             data.update(self.parse_subject(subject)) # get team and inject num
         except:
-            template = self.temps.invalid # Send the invalid template warning
-            template = template.render(**data)
-            Logger.log("{}: INVALID EMAIL: Sending reply..."
-                        .format(sender))
-            self.mail.send(template, sender)
+            data["log"] = "{}: INVALID SUBJECT: {}".format(sender, subject)
+            self.send_template(self.temps.invalid, data)
             return False
- 
+        
+        if not self.injects.isinject(data["inject_number"]):
+            data["log"] = "{}: INVALID INJECT: {}".format(sender, subject)
+            self.send_template(self.temps.invalid, data)
+            return False
+        
+        # See if the inject is late
         inject = self.injects.get(data["inject_number"]) # The inject we got
         data["inject_name"] = inject.name
         if inject.islate():
-            template = self.temps.late # Send the late submission warning
-            template = template.render(**data)
-            Logger.log(
-                "{}: TEAM {}: LATE SUBMISSION for Inject {}."
-                .format(sender, data["team_number"], data["inject_number"]))
-            self.mail.send(template, sender)
+            data["log"] = "{}: TEAM {}: LATE SUBMISSION for Inject {}."\
+                .format(sender, data["team_number"], data["inject_number"])
+            self.send_template(self.temps.late, data)
             return False
+            
         # At this point we assume the inject is a valid submission
         # Send the inject confirmation
         template = self.temps.valid # Send the confirmation
@@ -51,14 +54,16 @@ class Handler(object):
             .format(sender, data["team_number"], data["inject_number"]))
         self.mail.send(template, sender)
         # Now we check if there is a follow up inject
-        nxt = inject.next_path()
+        nxt = self.injects.next_path(inject)
         if nxt is None:
             # Send a message that the inject path is complete
             # TODO
+            Logger.green("inject complete for {}".format(int(float(inject.number))))
             pass
         else:
             # Send the next inject in the path if they have completed it
             # TODO
+            Logger.green("Next up is {}".format(nxt))
             pass
         return False
 
@@ -94,3 +99,9 @@ class Handler(object):
             raise ValueError("Invalid subject line {}".format(subject))
 
 
+    def send_template(self, template, data):
+            Logger.log(data.pop("log"))
+            sender = data.pop("sender")
+            template = template.render(**data)
+            self.mail.send(template, sender)
+        

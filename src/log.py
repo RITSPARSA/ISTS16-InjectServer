@@ -59,7 +59,7 @@ class LoggerObject(object):
         """
         if self.loglevel > 2:
             args = ["[*]"] + [str(x) for x in args] # convert to str
-            print(self.color(" ".join(args), "blue"), **kwargs)
+            print(self.color(" ".join(args), "green"), **kwargs)
             return True
         return False
     

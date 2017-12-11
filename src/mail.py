@@ -11,7 +11,7 @@ class Mail(object):
 
     def send(self, contents, rcpt):
         Logger.green("Sending email to {}".format(rcpt))
-        Logger.plain(contents)
+        #Logger.plain(contents)
 
 def parse_email(filename):
     body = ""
