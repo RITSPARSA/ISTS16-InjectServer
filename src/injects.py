@@ -18,8 +18,8 @@ class Inject(object):
             lines = f.read() # Get the lines of the inject file
         try:
             i = lines.index('\n') # first the first occurence of a new line
-            firstline = lines[:i].strip() # Before first \n is the first line
-            self.text = lines[i:].strip() # After the first newline is the body
+            firstline = lines[:i].strip() # the first line
+            self.text = lines[i:].strip() # the body
             firstline = firstline.split(":",1) # "1.1: Inject name"
             self.number, self.name = [n.strip() for n in firstline[:]]
             self.file = fil
@@ -27,7 +27,8 @@ class Inject(object):
             if self.text == "" or self.name == "":
                 raise ValueError() # make sure nothing is empty
         except:
-            raise ValueError("Invalid inject in {}".format(fil)) 
+            raise ValueError("Invalid inject in {}".format(fil))
+
     def __str__(self):
         return "Inject {}: {}".format(self.number, self.name)
     def __repr__(self):
@@ -44,11 +45,11 @@ class Injects(object):
             for f in files:
                 try:
                     inj = Inject(path+f) # Try to create an inject number
-                    self.injects[inj.number] = inj # Add it to the injects
+                    self.injects[inj.number] = inj # Add to the injects
                 except ValueError:
-                    Logger.error("[!] Cannot load inject {}. Skipping."\
+                    Logger.warn("Cannot load inject {}. Skipping."\
                         .format(f.strip()))
-        Logger.log("Loaded {} injects from \"{}\"".format(len(self.injects),
+        Logger.update("Loaded {} injects from \"{}\"".format(len(self.injects),
                                                         directory))
     
     def __str__(self):
