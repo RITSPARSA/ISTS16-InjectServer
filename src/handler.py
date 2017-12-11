@@ -20,17 +20,20 @@ class Handler(object):
         """Handle an email coming from the blue teams
         """
         def is_complete(data):
+            """Makes sure that all minor paths before this inject are complete
+            """
             complete = []
-            num_h, num_l = str(data["inject_number"]).split(".")
+            hi, lo = str(data["inject_number"]).split(".")
+            if lo == "1":
+                return True # If its a base inject, say path is complete
             tn = data["team_number"]
-            for i in range(1, int(num_l)+1):
-                Logger.log("checking {}".format(".".join((num_h, str(i)))))
-                complete += [files.is_tagged(tn, ".".join((num_h, str(i))),
-                    "complete")]
-            if all(complete):
-                Logger.green("the path is complete")
-            else:
-                Logger.warn("Not all injects complete")
+            for i in range(1, int(lo)):
+                inject = ".".join((hi, str(i)))
+                if not files.is_tagged(tn, inject, "complete"):
+                    Logger.warn("Team {} did not complete inject {}".format(tn,
+                                    inject))
+                    return False
+            return True
 
         template = None # the template to render during the return
         data = {} # All the data that goes into a jinja template
@@ -53,7 +56,7 @@ class Handler(object):
         inject = self.injects.get(data["inject_number"]) # The inject we got
         data["inject_name"] = inject.name
         if inject.islate():
-            data["log"] = "{}: TEAM {}: LATE SUBMISSION for Inject {}."\
+            data["warn"] = "{}: TEAM {}: LATE SUBMISSION for Inject {}."\
                 .format(sender, data["team_number"], data["inject_number"])
             self.send_template(self.temps.late, data)
             files.mark_tag(data["team_number"], data["inject_number"],
@@ -61,7 +64,15 @@ class Handler(object):
             return False
             
         # At this point we assume the inject is a valid submission
-        is_complete(data)
+        if not is_complete(data):
+            data["warn"] = "{}: TEAM {}: EARLY SUBMISSION for Inject {}."\
+                .format(sender, data["team_number"], data["inject_number"])
+            self.send_template(self.temps.invalid, data)
+            files.mark_tag(data["team_number"], data["inject_number"],
+                                "late")
+            return False
+
+        
         # Send the inject confirmation
         data["log"] = "{}: TEAM {}: ON-TIME SUBMISSION for Inject {}."\
             .format(sender, data["team_number"], data["inject_number"])
@@ -114,7 +125,13 @@ class Handler(object):
 
 
     def send_template(self, template, data):
-            Logger.log(data.pop("log"))
+            x = data.pop("log",False)
+            if x is not False:
+                Logger.log(x)
+            x = data.pop("warn",False)
+            if x is not False:
+                Logger.warn(x)
+            
             sender = data.pop("sender")
             template = template.render(**data)
             self.mail.send(template, sender)

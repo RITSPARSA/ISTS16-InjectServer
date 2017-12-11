@@ -6,7 +6,6 @@ def setup():
     def created(dirr):
         if not os.path.exists(dirr):
             os.makedirs(dirr)
-            Logger.update("Created "+dirr)
     # Make the results directory
     rd = Config.results_directory
     created(rd)
