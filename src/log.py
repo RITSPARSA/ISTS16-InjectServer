@@ -25,12 +25,22 @@ class LoggerObject(object):
 	    "bold":'\033[1m',
 	    "underline":'\033[4m'
 	}
+        self.underline = True
+        self.bold = True
+
+    def toggle(self):
+        self.bold = not self.bold
+        self.underline = not self.underline
 
     def color(self, string, color=""):
         """Color a string
         """
         try:
             s = self.colors[color] # Try to get the color
+            if self.bold:
+                s += self.colors["bold"]
+            if self.underline:
+                s += self.colors["underline"]
             e = self.colors["clear"]
         except:
             s, e = "","" # Blank if error

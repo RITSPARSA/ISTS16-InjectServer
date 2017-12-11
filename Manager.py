@@ -4,6 +4,8 @@ from src.handler import Handler
 from src.google import Google
 from src.mail import parse_email
 
+Logger.log("Initializing the program")
+Logger.toggle()
 config.Config = config.ConfigurationObject("config.yml")
 hand = Handler()
 x = parse_email("tests/unknown_format.txt")
