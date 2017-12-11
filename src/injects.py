@@ -133,7 +133,7 @@ class Injects(object):
         except:
             raise ValueError("Not a valid inject number: {}".format(current))
         
-        nxt = str(current+1.1) # Get the next major number
+        nxt = str(current+1) # Get the next major number
         if nxt in self.injects:
             return self.injects[nxt]
         else:

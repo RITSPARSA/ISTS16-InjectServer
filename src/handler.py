@@ -27,7 +27,7 @@ class Handler(object):
             if lo == "1":
                 return True # If its a base inject, say path is complete
             tn = data["team_number"]
-            for i in range(1, int(lo)):
+            for i in range(int(lo)):
                 inject = ".".join((hi, str(i)))
                 if not files.is_tagged(tn, inject, "complete"):
                     Logger.warn("Team {} did not complete inject {}".format(tn,
