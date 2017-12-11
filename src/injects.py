@@ -33,6 +33,24 @@ class Inject(object):
         return "Inject {}: {}".format(self.number, self.name)
     def __repr__(self):
         return str(self.number)
+    
+    def get(self):
+        """Update all the values and return the body of inject
+        """
+        with open(self.file) as f:
+            lines = f.read() # Get the lines of the inject file
+        try:
+            i = lines.index('\n') # find first new line
+            firstline = lines[:i].strip() # the first line
+            self.text = lines[i:].strip() # the body
+            firstline = firstline.split(":",1) # "1.1: Inject name"
+            self.number, self.name = [n.strip() for n in firstline[:]]
+            float(self.number) # Make sure this is a float or int
+            if self.text == "" or self.name == "":
+                raise ValueError() # make sure nothing is empty
+        except:
+            raise ValueError("Invalid inject in {}".format(fil))
+        return self.body
 
 class Injects(object):
     """Manages all of the injects that are loaded
@@ -49,8 +67,8 @@ class Injects(object):
                 except ValueError:
                     Logger.warn("Cannot load inject {}. Skipping."\
                         .format(f.strip()))
-        Logger.update("Loaded {} injects from \"{}\"".format(len(self.injects),
-                                                        directory))
+        Logger.update("Loaded {} injects from \"{}\"".format(
+                        len(self.injects), directory))
     
     def __str__(self):
         loaded = [ str(i) for i in self.injects.values()]
