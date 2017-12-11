@@ -12,11 +12,11 @@ class Handler(object):
     """This class figures out what to do with received emails
     """
     def __init__(self):
-        self.injects = Injects(Config.injects)
+        self.injects = Injects(Config.inject_directory)
         self.mail = Mail("u", "p", "pass")
-        self.temps = Templates(Config.templates)
+        self.temps = Templates(Config.template_directory)
 
-    def handle(self, replyto, subject, body, attachments=[]):
+    def handle(self, sender, subject, body, attachments=[]):
         """Handle an email coming from the blue teams
         """
         template = None # the template to render during the return
@@ -27,9 +27,9 @@ class Handler(object):
         except:
             template = self.temps.invalid # Send the invalid template warning
             template = template.render(**data)
-            Logger.update("Invalid email from {}. Sending reply..."
-                        .format(replyto))
-            self.mail.send(template, replyto)
+            Logger.log("{}: INVALID EMAIL: Sending reply..."
+                        .format(sender))
+            self.mail.send(template, sender)
             return False
  
         inject = self.injects.get(data["inject_number"]) # The inject we got
@@ -37,11 +37,30 @@ class Handler(object):
         if inject.islate():
             template = self.temps.late # Send the late submission warning
             template = template.render(**data)
-            Logger.update(
-                "Late submittion from {} for Inject {}. Sending reply..."
-                .format(replyto, data["inject_number"]))
-            self.mail.send(template, replyto)
+            Logger.log(
+                "{}: TEAM {}: LATE SUBMISSION for Inject {}."
+                .format(sender, data["team_number"], data["inject_number"]))
+            self.mail.send(template, sender)
             return False
+        # At this point we assume the inject is a valid submission
+        # Send the inject confirmation
+        template = self.temps.valid # Send the confirmation
+        template = template.render(**data)
+        Logger.log(
+            "{}: TEAM {}: ON-TIME SUBMISSION for Inject {}."
+            .format(sender, data["team_number"], data["inject_number"]))
+        self.mail.send(template, sender)
+        # Now we check if there is a follow up inject
+        nxt = inject.next_path()
+        if nxt is None:
+            # Send a message that the inject path is complete
+            # TODO
+            pass
+        else:
+            # Send the next inject in the path if they have completed it
+            # TODO
+            pass
+        return False
 
     def parse_subject(self, subject):
         """Parse a subject line to see if the information is valid
