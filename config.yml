@@ -2,4 +2,4 @@
 name: "InjectManager"
 injects: "injects/"
 templates: "src/templates/"
-loglevel: 3
+loglevel: 4

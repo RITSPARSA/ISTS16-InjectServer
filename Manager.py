@@ -4,6 +4,6 @@ from src import injects
 
 
 Config = ConfigurationObject("config.yml")
-Logger.blue("[*] Loading injects...")
+Logger.update("Loading injects...")
 x = injects.Injects("injects/")
 print(x.first())

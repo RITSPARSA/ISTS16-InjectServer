@@ -12,8 +12,10 @@ class LoggerObject(object):
         0 = None
         1 = Errors only
         2 = Add warnings
-        3 = Everything
+        3 = Normal Messages
+        4 = Extra verbose
         """
+        self.loglevel = loglevel
         self.colors = {
 	    "purple":'\033[95m',
 	    "blue":'\033[94m',
@@ -24,7 +26,17 @@ class LoggerObject(object):
 	    "bold":'\033[1m',
 	    "underline":'\033[4m'
 	}
-        self.loglevel = loglevel
+
+    def color(self, string, color=""):
+        """Color a string
+        """
+        try:
+            s = self.colors[color] # Try to get the color
+            e = self.colors["clear"]
+        except:
+            s, e = "","" # Blank if error
+
+        return "{}{}{}".format(s, string, e)
 
     def log(self, *args, **kwargs):
         """Log normal if the logging level is correct
@@ -34,27 +46,39 @@ class LoggerObject(object):
             return True
         return False
     
-    def warn(self, *args,color="clear", **kwargs):
-        """Log warning if the logging level is correct
+    def green(self,*args, **kwargs):
+        """Show a success message.
         """
-        color = "\033[93m"
-        clear = "\033[0m"
-        if self.loglevel > 1:
-            print(color, end="")
-            print(*args, **kwargs)
-            print(clear, end="")
+        if self.loglevel > 2:
+            args = ["[*]"] + [str(x) for x in args] # convert to str
+            print(self.color(" ".join(args), "blue"), **kwargs)
             return True
         return False
     
-    def error(self, *args, **kwargs):
-        """Log error if the logging level is correct
+    def update(self,*args, **kwargs):
+        """Show a blue message. Random tasks that are happening
         """
-        red = "\033[91m"
-        clear = "\033[0m"
+        if self.loglevel > 3:
+            args = ["[*]"] + [str(x) for x in args] # convert to str
+            print(self.color(" ".join(args), "blue"), **kwargs)
+            return True
+        return False
+
+    def warn(self,*args, **kwargs):
+        """Show a yellow warning
+        """
+        if self.loglevel > 1:
+            args = ["[!]"] + [str(x) for x in args] # convert to str
+            print(self.color(" ".join(args), "yellow"), **kwargs)
+            return True
+        return False
+    
+    def error(self,*args, **kwargs):
+        """Show a yellow warning
+        """
         if self.loglevel > 0:
-            print(red, end="")
-            print(*args, **kwargs)
-            print(clear, end="")
+            args = ["[!]"] + [str(x) for x in args] # convert to str
+            print(self.color(" ".join(args), "red"), **kwargs)
             return True
         return False
 
