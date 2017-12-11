@@ -6,7 +6,7 @@ Author: Micah Martin (mjm5097@rit.edu)
 
 import yaml
 from json import dumps
-#from .log import Logger
+from .log import Logger
 
 class ConfigurationObject(object):
     """Manages the global configuration objects
@@ -14,27 +14,27 @@ class ConfigurationObject(object):
     """
     def __init__(self, filename="config.yml"):
         # Default configuration
-        defaults = {"name":"InjectManager", "injects":"injects/",
-        "results":"results/", "templates":"InjectManager/templates/",
-        "loglevel":2} 
-        data = dict(defaults)
+        defaults = ["name", "inject_directory", "inject_count",
+        "inject_path_count", "max_teams", "template_directory",
+        "log_level", "log_file"]
+        
         # Try to open the filename and load the data from it
-        if filename is not None:
-            try:
-                with open(filename) as fil:
-                    data = yaml.safe_load(fil)
-                #Logger.log("Loaded settings from {}".format(filename))
-            except:
-                #Logger.warn("No configuration in {}, using defaults"
-                #    .format(filename))
-                pass
+        try:
+            with open(filename) as fil:
+                data = yaml.safe_load(fil)
+            Logger.update("Loaded settings from {}".format(filename))
+        except:
+            Logger.error("Config file {} does not exist".format(filename))
+            raise BaseException("Configuration file does not exist")
         # Check for missing config values
+        error = False
         for v in defaults:
             if v not in data:
-                data[v] = defaults[v] # set missing val from defaults
-                #Logger.warn(
-                #"Configuration value \"{}\" not set. Using \"{}\""
-                #.format(v, defaults[v]))
+                Logger.warn("Configuration missing setting for " + v)
+                error = True
+        if error:
+            raise BaseException("Configuration file not complete.\
+                            Check log for missing values")
         self.__dict__.update(data) # Set the data as obj. properties
 
 
@@ -44,3 +44,4 @@ class ConfigurationObject(object):
         print(data)
 
 Config = ConfigurationObject()
+Logger.loglevel = Config.log_level

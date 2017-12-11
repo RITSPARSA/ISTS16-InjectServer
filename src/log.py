@@ -5,7 +5,6 @@ Handles the logging of all the other functions
 Author: Micah Martin (mjm5097@rit.edu)
 """
 
-from .config import Config
 class LoggerObject(object):
     def __init__(self, loglevel=3):
         """Set the loglevel
@@ -38,8 +37,17 @@ class LoggerObject(object):
 
         return "{}{}{}".format(s, string, e)
 
-    def log(self, *args, **kwargs):
-        """Log normal if the logging level is correct
+    def log(self,*args, **kwargs):
+        """Show a blue message. Random tasks that are happening
+        """
+        if self.loglevel > 2:
+            args = ["[*]"] + [str(x) for x in args] # convert to str
+            print(self.color(" ".join(args), "purple"), **kwargs)
+            return True
+        return False
+    
+    def plain(self,*args, **kwargs):
+        """Show a plain message. Random tasks that are happening
         """
         if self.loglevel > 2:
             print(*args, **kwargs)
@@ -51,7 +59,7 @@ class LoggerObject(object):
         """
         if self.loglevel > 2:
             args = ["[*]"] + [str(x) for x in args] # convert to str
-            print(self.color(" ".join(args), "blue"), **kwargs)
+            print(self.color(" ".join(args), "green"), **kwargs)
             return True
         return False
     
@@ -82,4 +90,4 @@ class LoggerObject(object):
             return True
         return False
 
-Logger = LoggerObject(Config.loglevel)
+Logger = LoggerObject(2)

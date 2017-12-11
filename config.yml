@@ -1,5 +1,9 @@
 ---
 name: "InjectManager"
-injects: "injects/"
-templates: "src/templates/"
-loglevel: 4
+inject_directory: "injects/"
+inject_count: 15
+inject_path_count: 3
+max_teams: 12
+template_directory: "src/templates/"
+log_level: 4
+log_file: "InjectManager.log"

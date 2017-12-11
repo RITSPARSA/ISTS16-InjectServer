@@ -58,7 +58,6 @@ class Templates(object):
         self.templates = {}
         for (path, dirs, files) in walk(directory):
             for f in files:
-                Logger.update(f)
                 try:
                     name = f.split(".")[0]
                     tmp = EmailTemplate(path+f)

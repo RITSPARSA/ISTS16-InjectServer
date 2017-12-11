@@ -11,4 +11,20 @@ class Mail(object):
 
     def send(self, contents, rcpt):
         Logger.green("Sending email to {}".format(rcpt))
-        Logger.log(contents)
+        #Logger.plain(contents)
+
+def parse_email(filename):
+    body = ""
+    subject = ""
+    sender = ""
+    with open(filename) as fil:
+        for line in fil.readlines():
+            if "From:" in line:
+                sender = line.split(":",1)[1].strip()
+                continue
+            if "Subject:" in line:
+                subject = line.split(":",1)[1].strip()
+                continue
+            body += line
+    return (sender, subject, body)
+    
