@@ -1,7 +1,7 @@
 """
 Parses incoming emails and sends autoreply
 """
-
+from . import files
 from .log import Logger
 from .config import Config
 from .mail import Mail
@@ -19,6 +19,19 @@ class Handler(object):
     def handle(self, sender, subject, body, attachments=[]):
         """Handle an email coming from the blue teams
         """
+        def is_complete(data):
+            complete = []
+            num_h, num_l = str(data["inject_number"]).split(".")
+            tn = data["team_number"]
+            for i in range(1, int(num_l)+1):
+                Logger.log("checking {}".format(".".join((num_h, str(i)))))
+                complete += [files.is_tagged(tn, ".".join((num_h, str(i))),
+                    "complete")]
+            if all(complete):
+                Logger.green("the path is complete")
+            else:
+                Logger.warn("Not all injects complete")
+
         template = None # the template to render during the return
         data = {} # All the data that goes into a jinja template
         data["inject_subject"] = subject
@@ -43,27 +56,28 @@ class Handler(object):
             data["log"] = "{}: TEAM {}: LATE SUBMISSION for Inject {}."\
                 .format(sender, data["team_number"], data["inject_number"])
             self.send_template(self.temps.late, data)
+            files.mark_tag(data["team_number"], data["inject_number"],
+                                "late")
             return False
             
         # At this point we assume the inject is a valid submission
+        is_complete(data)
         # Send the inject confirmation
-        template = self.temps.valid # Send the confirmation
-        template = template.render(**data)
-        Logger.log(
-            "{}: TEAM {}: ON-TIME SUBMISSION for Inject {}."
-            .format(sender, data["team_number"], data["inject_number"]))
-        self.mail.send(template, sender)
+        data["log"] = "{}: TEAM {}: ON-TIME SUBMISSION for Inject {}."\
+            .format(sender, data["team_number"], data["inject_number"])
+        self.send_template(self.temps.valid, data)
+        files.mark_tag(data["team_number"], data["inject_number"],
+                                "complete")
         # Now we check if there is a follow up inject
         nxt = self.injects.next_path(inject)
-        if nxt is None:
+        if nxt is not None:
+            # Send the next inject in the path if they have completed it
+            # TODO
+            pass
+        else:
             # Send a message that the inject path is complete
             # TODO
             Logger.green("inject complete for {}".format(int(float(inject.number))))
-            pass
-        else:
-            # Send the next inject in the path if they have completed it
-            # TODO
-            Logger.green("Next up is {}".format(nxt))
             pass
         return False
 

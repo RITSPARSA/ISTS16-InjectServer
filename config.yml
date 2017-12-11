@@ -3,6 +3,7 @@ name: "InjectManager"
 inject_directory: "injects/"
 inject_count: 15
 inject_path_count: 3
+results_directory: "results/"
 max_teams: 12
 template_directory: "src/templates/"
 log_level: 4
