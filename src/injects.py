@@ -34,6 +34,12 @@ class Inject(object):
     def __repr__(self):
         return str(self.number)
     
+    def islate(self):
+        """Check whether this inject can still be submitted
+        """
+        #TODO
+        return True
+    
     def get(self):
         """Update all the values and return the body of inject
         """
