@@ -1,0 +1,5 @@
+---
+name: "InjectManager"
+injects: "injects/"
+templates: "src/templates/"
+loglevel: 3
