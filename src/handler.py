@@ -7,6 +7,7 @@ from .config import Config
 from .mail import Mail
 from .injects import Injects
 from .templates import Templates
+from .database import Database
 
 class Handler(object):
     """This class figures out what to do with received emails
@@ -15,6 +16,7 @@ class Handler(object):
         self.injects = Injects(Config.inject_directory)
         self.mail = Mail("u", "p", "pass")
         self.temps = Templates(Config.template_directory)
+        self.db = Database(Config.gcreds)
 
     def handle(self, sender, subject, body, attachments=[]):
         """Handle an email coming from the blue teams
@@ -46,39 +48,59 @@ class Handler(object):
             data["log"] = "{}: INVALID SUBJECT: {}".format(sender, subject)
             self.send_template(self.temps.invalid, data)
             return False
-        
+
+        # See if the inject is actually an inject
         if not self.injects.isinject(data["inject_number"]):
             data["log"] = "{}: INVALID INJECT: {}".format(sender, subject)
+            # Send an INVALID template
             self.send_template(self.temps.invalid, data)
             return False
         
         # See if the inject is late
-        inject = self.injects.get(data["inject_number"]) # The inject we got
-        data["inject_name"] = inject.name
+        inject = self.injects.get(data["inject_number"]) # get inject obj.
         if inject.islate():
+            # Warn and log about a late submission
             data["warn"] = "{}: TEAM {}: LATE SUBMISSION for Inject {}."\
                 .format(sender, data["team_number"], data["inject_number"])
+            # Send the late submission template
             self.send_template(self.temps.late, data)
-            files.mark_tag(data["team_number"], data["inject_number"],
-                                "late")
+            
+            tests = []
+            # Mark the inject as late in the DB
+            tests += [self.db.set_late(data["team_number"],
+                        data["inject_number"])]
+            # Mark the inject as submitted
+            tests += [self.db.set_submitted(data["team_number"],
+                        data["inject_number"])]
+            if not all(tests):
+                raise BaseException("The database was not written: {}".format(
+                                        data["inject_number"]))
             return False
             
-        # At this point we assume the inject is a valid submission
-        if not is_complete(data):
+        # Make sure that the the path is complete for minor injects
+        complete =  self.db.is_path_complete(data["team_number"],
+                                                data["inject_number"])
+        if not complete:
+            # Warn and log that a team submitted early
             data["warn"] = "{}: TEAM {}: EARLY SUBMISSION for Inject {}."\
                 .format(sender, data["team_number"], data["inject_number"])
+            # Pretend that the inject doesnt exist
             self.send_template(self.temps.invalid, data)
-            files.mark_tag(data["team_number"], data["inject_number"],
-                                "late")
             return False
 
-        
-        # Send the inject confirmation
+        # If it has made it this far, then the inject is valid
+        # Log the completion
         data["log"] = "{}: TEAM {}: ON-TIME SUBMISSION for Inject {}."\
             .format(sender, data["team_number"], data["inject_number"])
+        
+        # Confirm the submission
         self.send_template(self.temps.valid, data)
-        files.mark_tag(data["team_number"], data["inject_number"],
-                                "complete")
+        
+        # Mark the inject as completed
+        if not self.db.set_submitted(data["team_number"],data["inject_number"]):
+            raise BaseException("The database was not written: {}".format(
+                                    data["inject_number"]))
+        
         # Now we check if there is a follow up inject
         nxt = self.injects.next_path(inject)
         if nxt is not None:

@@ -1,6 +1,11 @@
 """
 Pulls and writes data to google docs
+This acts as the "db" for the software.
+Some of this code is ripped from googles website.
+
+Author: Micah Martin (mjm5097@rit.edu)
 """
+
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
@@ -9,9 +14,8 @@ import httplib2
 import os
 import argparse
 flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-
+# Required variables for the google API
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
-CLIENT_SECRET_FILE = 'config.txt'
 APPLICATION_NAME = 'ISTS Engine'
 
 class Google(object):
@@ -40,24 +44,10 @@ class Google(object):
             credentials = tools.run_flow(flow, store, flags)
         self.key = credentials
     
-    def get_inject_col(self, inject):
-        try:
-            h,l = str(float(inject)).split(".")
-            col = chr(65+int(l)+1)
-            row = int(h)+1
-            return "{}{}".format(col,row)
-        except:
-            raise BaseException("Invalid inject {}".format(inject))
-
-    def get_range(self, team, col, end=None):
-        """Generate a API range based on the team and the column
+    def get_cell(self, rang):
+        """Return all the values at the given range
         """
-        if end != None:
-            col = col+":"+end
-        rang = "Team{}!{}".format(team, col)
-        return rang
-
-    def get_cell(self, team, rang):
+        # Build the API object
         render_option = "UNFORMATTED_VALUE"
         request = self.service.spreadsheets().values().get(
                     spreadsheetId=self.sheetId, range=rang,
@@ -70,10 +60,12 @@ class Google(object):
         except:
             return []
 
-    def set_cell(self, team, col, value):
-        rang = self.get_range(team, col)
+    def set_cell(self, rang, value):
+        """Set the value of a given cell. Only supports one at a time
+        """
         render_option = "UNFORMATTED_VALUE"
-        input_option = "USER_ENTERED"
+        input_option = "RAW"
+        # Add the new value to the API body
         body = { "values": [[value]] }
         request = self.service.spreadsheets().values().update(
                     spreadsheetId=self.sheetId, range=rang,
@@ -83,29 +75,9 @@ class Google(object):
                     body=body)
         response = request.execute()
         try:
-            # Validate that the data was updated
+            # Validate that the data by checking against the sent data
             return response["updatedData"]["values"][0][0] == value
-            pass
         except:
+            # If there is any error, assume it didnt work
             return False
 
-    def is_submitted(self, team, inject):
-        col = self.get_range(team, self.get_inject_col(inject))
-        val = self.get_cell(team, col)
-        try:
-            return val[0] == True
-        except:
-            return False
-    
-    def is_valid(self, team, inject):
-        try:
-            h,l = str(float(inject)).split(".")
-            start = self.get_inject_col(h+".0")
-            if l != str(0):
-                rang = self.get_range(team, start, self.get_inject_col(inject))
-            else:
-                rang = self.get_range(team, start)
-            result = self.get_cell(team, rang)
-            return all(result) and len(result) > 0
-        except:
-            raise BaseException("Invalid inject {}".format(inject))

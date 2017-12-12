@@ -1,6 +1,6 @@
 From: team3@team3.ists
-Subject: Team 3: Inject 2.2
-This should generate Inject 2.3
+Subject: Team 0: Inject 2.2
+This should generate complete message
 
 fa
 dsf
