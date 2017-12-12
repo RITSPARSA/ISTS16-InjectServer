@@ -37,9 +37,10 @@ class Inject(object):
     def islate(self):
         """Check whether this inject can still be submitted
         """
-        if float(self.number) > 2:
-            return False
-        return True
+        if int(float(self.number)) == float(self.number):
+            return True # TODO actually check if the inject is late
+        else:
+            return False # all sub injects are never late
     
     def get(self):
         """Update all the values and return the body of inject
