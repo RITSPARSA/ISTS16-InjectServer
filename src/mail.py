@@ -10,7 +10,7 @@ class Mail(object):
         self.server = ip
 
     def send(self, contents, rcpt):
-        Logger.green("Sending email to {}".format(rcpt))
+        Logger.update("Sending email to {}".format(rcpt))
         #Logger.plain(contents)
 
 def parse_email(filename):

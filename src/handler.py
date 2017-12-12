@@ -89,30 +89,36 @@ class Handler(object):
             return False
 
         # If it has made it this far, then the inject is valid
-        # Log the completion
-        data["log"] = "{}: TEAM {}: ON-TIME SUBMISSION for Inject {}."\
-            .format(sender, data["team_number"], data["inject_number"])
-        
-        # Confirm the submission
-        self.send_template(self.temps.valid, data)
-        
-        # Mark the inject as completed
-        if not self.db.set_submitted(data["team_number"],data["inject_number"]):
-            raise BaseException("The database was not written: {}".format(
-                                    data["inject_number"]))
         
         # Now we check if there is a follow up inject
         nxt = self.injects.next_path(inject)
+        # Send the next inject in the path if they have completed it
         if nxt is not None:
-            # Send the next inject in the path if they have completed it
-            # TODO
-            pass
+            # Log the completion
+            data["log"] = \
+                "{}: TEAM {}: ON-TIME SUBMISSION for Inject {}.".format(
+                            sender, data["team_number"], data["inject_number"])
+            # Confirm the submission
+            self.send_template(self.temps.valid, data)
+            # Mark the inject as completed
+            if not self.db.set_submitted(data["team_number"],
+                                                data["inject_number"]):
+                raise BaseException("The database was not written: {}".format(
+                                        data["inject_number"]))
         else:
             # Send a message that the inject path is complete
-            # TODO
-            Logger.green("inject complete for {}".format(int(float(inject.number))))
-            pass
-        return False
+            # Log the completion
+            data["log"] = \
+                "{}: TEAM {}: ON-TIME SUBMISSION for Inject {}.".format(
+                            sender, data["team_number"], data["inject_number"])
+            # Confirm the submission
+            self.send_template(self.temps.valid_complete, data)
+            # Mark the inject as completed
+            if not self.db.set_submitted(data["team_number"],
+                                        data["inject_number"]):
+                raise BaseException("The database was not written: {}".format(
+                                        data["inject_number"]))
+        return True
 
     def parse_subject(self, subject):
         """Parse a subject line to see if the information is valid
