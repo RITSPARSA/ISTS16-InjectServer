@@ -2,4 +2,6 @@
 *.swp
 injects/*
 results/*
+.secrets/*
 config.txt
+.vscode

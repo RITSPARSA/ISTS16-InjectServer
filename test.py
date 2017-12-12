@@ -5,7 +5,7 @@ from src.log import Logger
 from src.config import Config, ConfigurationObject
 from src.handler import Handler
 from src.google import Google
-from src.mail import parse_email
+from src.mail import parse_email, ImapClient
 from src import files
 from src.templates import EmailTemplate
 from loremipsum import generate_paragraph
@@ -45,6 +45,7 @@ Config = ConfigurationObject("config.yml")
 create_mock_injects()
 
 TEST_TEAM=0
+"""
 hand = Handler()
 x = parse_email("tests/correct.txt")
 hand.handle(*x)
@@ -56,3 +57,5 @@ x = parse_email("tests/sub21.txt")
 hand.handle(*x)
 x = parse_email("tests/sub22.txt")
 hand.handle(*x)
+"""
+

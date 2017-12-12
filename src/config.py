@@ -42,6 +42,9 @@ class ConfigurationObject(object):
         data = dumps(self.__dict__, sort_keys=True, indent=4,
                      separators=(',', ': '))
         print(data)
+    
+    def get(self, key):
+        return getattr(self, key)
 
 Config = ConfigurationObject()
-Logger.loglevel = Config.log_level
+Logger.loglevel = Config.get("log_level")
