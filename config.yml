@@ -8,3 +8,4 @@ max_teams: 12
 template_directory: "src/templates/"
 log_level: 4
 log_file: "InjectManager.log"
+db: "db.json"

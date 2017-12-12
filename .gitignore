@@ -1,4 +1,5 @@
 *.pyc
 *.swp
+injects/*
 results/*
 config.txt

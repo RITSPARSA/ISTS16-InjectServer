@@ -32,7 +32,7 @@ def create_mock_injects():
             name = names[count]
             count += 1
             fname = "{}/{}.{}_{}.txt".format(idd, j,k,name.replace(" ","_"))
-            text = generate_paragraph()[0]
+            text = generate_paragraph()[2]
             with open(fname, 'w') as f:
                 f.write("{}\n".format(
                         t.render(inject_name=name, inject_number="{}.{}"
@@ -43,3 +43,10 @@ Logger.log("Initializing the program")
 Logger.toggle()
 Config = ConfigurationObject("config.yml")
 create_mock_injects()
+
+TEST_TEAM=0
+g = Google("config.txt")
+print g.is_valid(TEST_TEAM, 2.0)
+print g.is_valid(TEST_TEAM, 2.2)
+print g.is_valid(TEST_TEAM, 3.2)
+print g.is_valid(TEST_TEAM, 3.0)
