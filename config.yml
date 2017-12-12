@@ -1,15 +1,19 @@
 ---
 name: "InjectManager"
-inject_directory: "injects/"
 inject_count: 15
 inject_path_count: 3
-cache_directory: "cache/"
-results_directory: "results/"
 max_teams: 12
-template_directory: "src/templates/"
 log_level: 4
+
+cache_directory: "cache/"
+inject_directory: "injects/"
+secrets_directory: ".secrets"
+results_directory: "results/"
+template_directory: "src/templates/"
+
 log_file: "InjectManager.log"
 db: "db.json"
+
 sheets_api_key: ".secrets/google.json"
 gmail_creds: ".secrets/gmail.json"
 ists_creds: ".secrets/ists.json"

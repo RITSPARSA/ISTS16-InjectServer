@@ -5,11 +5,12 @@ from src.log import Logger
 from src.config import Config, ConfigurationObject
 from src.handler import Handler
 from src.google import Google
-from src.mail import parse_email, ImapClient
+from src.mail import parse_email, Mail
 from src import files
 from src.templates import EmailTemplate
 from loremipsum import generate_paragraph
 import os
+import time
 
 def create_mock_injects():
     """Generate a bunch of mock injects
@@ -28,7 +29,7 @@ def create_mock_injects():
     for j in range(1, Config.inject_count+1):
         idd = "{}/{}".format(rd,j)
         created(idd)
-        for k in range(Config.inject_path_count+1):
+        for k in range(1,Config.inject_path_count+2):
             name = names[count]
             count += 1
             fname = "{}/{}.{}_{}.txt".format(idd, j,k,name.replace(" ","_"))
@@ -44,18 +45,13 @@ Logger.toggle()
 Config = ConfigurationObject("config.yml")
 create_mock_injects()
 
-TEST_TEAM=0
-"""
-hand = Handler()
-x = parse_email("tests/correct.txt")
-hand.handle(*x)
-x = parse_email("tests/unknown_format.txt")
-hand.handle(*x)
-x = parse_email("tests/sub22.txt")
-hand.handle(*x)
-x = parse_email("tests/sub21.txt")
-hand.handle(*x)
-x = parse_email("tests/sub22.txt")
-hand.handle(*x)
-"""
 
+# Create any directories jsut incase we need it
+files.create_directories()
+# Create the mail object
+with Mail() as m:
+    hand = Handler(m)
+    while True:
+        time.sleep(5)
+        for e in m.gmail.check_mail():
+            hand.handle(*e)

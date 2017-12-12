@@ -12,31 +12,15 @@ from .database import Database
 class Handler(object):
     """This class figures out what to do with received emails
     """
-    def __init__(self):
-        self.injects = Injects(Config.inject_directory)
-        self.mail = Mail("u", "p", "pass")
-        self.temps = Templates(Config.template_directory)
-        self.db = Database(Config.gcreds)
+    def __init__(self, mail):
+        self.injects = Injects(Config.get("inject_directory"))
+        self.mail = mail
+        self.temps = Templates(Config.get("template_directory"))
+        self.db = Database(Config.get("sheets_api_key"))
 
-    def handle(self, sender, subject, body, attachments=[]):
+    def handle(self, sender, subject, file):
         """Handle an email coming from the blue teams
         """
-        def is_complete(data):
-            """Makes sure that all minor paths before this inject are complete
-            """
-            complete = []
-            hi, lo = str(data["inject_number"]).split(".")
-            if lo == "1":
-                return True # If its a base inject, say path is complete
-            tn = data["team_number"]
-            for i in range(int(lo)):
-                inject = ".".join((hi, str(i)))
-                if not files.is_tagged(tn, inject, "complete"):
-                    Logger.warn("Team {} did not complete inject {}".format(tn,
-                                    inject))
-                    return False
-            return True
-
         template = None # the template to render during the return
         data = {} # All the data that goes into a jinja template
         data["inject_subject"] = subject

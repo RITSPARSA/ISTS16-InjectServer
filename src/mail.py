@@ -6,24 +6,30 @@ import email
 import json
 from .log import Logger
 from .config import Config
+from . import files
 
 class Mail(object):
     """Manages all email functions including sending emails, get new emails, and parsing raw emails
     Connects to multiple account
     """
-    def __init__(self, username, password, ip):
-        self.user = username
-        self.password = password
-        self.server = ip
+    def __init__(self):
         with open(Config.get("gmail_creds")) as fil:
             cdata = json.load(fil)
         self.gmail = ImapClient(cdata["server"], cdata["port"], cdata["username"], cdata["password"])
-
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, a, b, c):
+        Logger.update("Logging out of mail connections")
+        self.gmail.con.logout()
+    
     def send(self, contents, rcpt):
         """Send an email with the following contents
         """
-        Logger.update("Sending email to {}".format(rcpt))
-        Logger.plain(contents)
+        filename = "{}.mail".format(abs(hash(contents)))
+        Logger.update("Sending email {} to {}".format(filename, rcpt))
+        path = "{}sent/{}".format(Config.get("cache_directory"),filename)
+        files.write_file(path, contents)
 
 
 def parse_email(filename):
@@ -63,7 +69,7 @@ class ImapClient(object):
         """Check for emails in the given directory
         """
         self.con.select(mailbox)
-        status, ids = self.con.search(None, "ALL")
+        status, ids = self.con.search(None, "UNSEEN")
         ids = [int(i) for i in ids[0].split()] # the ids is a list of int in a string
         retval = []
         for i in ids:
@@ -71,10 +77,9 @@ class ImapClient(object):
             for item in emails:
                 if isinstance(item, tuple) and len(item) > 1:
                     em = email.message_from_string(item[1])
-                    em_filename = "{}.mbox".format(abs(hash(em)))
+                    em_filename = "{}.mbox".format(abs(hash(em.as_string())))
                     em_path = "{}recv/{}".format(Config.get("cache_directory"), em_filename)
-                    with open(em_path,'w') as fil:
-                        fil.write(em)
-                        Logger.update("Saved incoming email " + em_filename)
-                    retval += [(em["subject"], em["from"], em_path)]
+                    files.write_file(em_path, em.as_string())
+                    Logger.update("Saved incoming email {} from {}".format(em_filename,em["subject"]))
+                    retval += [(em["from"], em["subject"], em_path)]
         return retval
