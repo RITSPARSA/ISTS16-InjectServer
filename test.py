@@ -29,7 +29,8 @@ def create_mock_injects():
     for j in range(1, Config.inject_count+1):
         idd = "{}/{}".format(rd,j)
         created(idd)
-        for k in range(1,Config.inject_path_count+2):
+        # Inject path count (4) + BaseInject = 5 
+        for k in range(0,Config.inject_path_count+1):
             name = names[count]
             count += 1
             fname = "{}/{}.{}_{}.txt".format(idd, j,k,name.replace(" ","_"))

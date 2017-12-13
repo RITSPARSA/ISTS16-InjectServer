@@ -2,7 +2,7 @@
 *.swp
 injects/*
 results/*
-.cache/*
+cache/*
 .secrets/*
 config.txt
 .vscode

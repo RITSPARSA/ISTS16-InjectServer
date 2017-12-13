@@ -1,7 +1,7 @@
 ---
 name: "InjectManager"
 inject_count: 15
-inject_path_count: 3
+inject_path_count: 4
 max_teams: 12
 log_level: 4
 
